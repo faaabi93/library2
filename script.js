@@ -1,77 +1,93 @@
-let myLibrary = []
-const content = document.querySelector(".content")
-const addBtn = document.getElementById("addBook")
-const addBtn2= document.getElementById("addBook2")
-const modal = document.querySelector(".modal")
-const closeBtn = document.getElementById("closeBtn")
+const container = document.querySelector(".container")
+const addButton = document.querySelector(".addBtn")
+let myLibrary = [];
 
-addBtn.addEventListener("click", showModal)
-closeBtn.addEventListener("click", closeModal)
-window.addEventListener("click", closeModalTwo)
-addBtn2.addEventListener("click", addBook)
-
-function showModal() {
-    modal.style.display = "block";
-}
-
-function closeModal() {
-    modal.style.display = "none"
-}
-
-function closeModalTwo(event) {
-    if(event.target == modal) {
-        closeModal()
-    }
-}
-
-function addBook(event) {
-    let tem
-}
-
-function Book(title, author, pages, isRead) {
-    this.title = title
-    this.author = author
-    this.pages = pages
-    this.isRead = isRead
+function Book(author, title, pages, isRead) {
+    this.author = author;
+    this.title = title;
+    this.pages = pages;
+    this.isRead = isRead;
 }
 
 function addBookToLibrary(book) {
-    myLibrary.push(book)
+    myLibrary.push(book);
 }
 
-function addBookToPage(book) {
-    let readStatus = book.isRead ? "Already read" : "not read";
+addBookToLibrary(new Book("Fabian Baiersdörfer", "Mein Leben Teil 1", 123, true))
+addBookToLibrary(new Book("Dieter Busch", "Rentweinsdorf", 1233, true))
+addBookToLibrary(new Book("M. Sennefelder", "Ich orgel mir einen rein", 1234, false))
 
-    let cardDiv = document.createElement("div");
-    let nameDiv = document.createElement("div");
-    let pageDiv = document.createElement("div");
-    let readDiv = document.createElement("div");
-    let deleBtn = document.createElement("div");
-    let readBtn = document.createElement("div");
-
-    cardDiv.classList.add("card");
-    nameDiv.classList.add("flex-1", "card-content");
-    pageDiv.classList.add("flex-2", "card-content");
-    readDiv.classList.add("flex-2", "card-content");
-    readBtn.classList.add("button", "green-button");
-    deleBtn.classList.add("button", "red-button");
-
-    nameDiv.textContent = `${book.author}: ${book.title}`
-    pageDiv.textContent = `${book.pages} Pages`
-    readDiv.textContent = readStatus
-    readBtn.textContent = "mark as read"
-    deleBtn.textContent = "delete"
-
-    cardDiv.appendChild(nameDiv);
-    cardDiv.appendChild(pageDiv);
-    cardDiv.appendChild(readDiv);
-    cardDiv.appendChild(readBtn);
-    cardDiv.appendChild(readBtn);
-    cardDiv.appendChild(deleBtn);
-
-    content.appendChild(cardDiv)
+function displayBooks(library) {
+    myLibrary.forEach((element, index) => {
+        createCard(element, index)
+    });
 }
 
-addBookToPage(new Book("Meine coole Biographie", "Fabian Baiersdörfer", 125, true))
-addBookToPage(new Book("Sachen über mich", "Dieter Busch", 1689, true))
-addBookToPage(new Book("ADBV Bier um 11", "Fabian Baiersdörfer", 5, false))
+function createCard(element, index) {
+    let card = document.createElement("div");
+    card.setAttribute("data-index", index)
+    card.classList.add("element")
+
+    let cardTop = document.createElement("div");
+    cardTop.classList.add("cardTop");
+    cardTop.innerHTML = `<b>${element.title}</b>`
+
+    let cardBottom = document.createElement("dvi");
+    cardBottom.classList.add("cardBottom");
+
+    let p1 = document.createElement("p");
+    p1.textContent = `Author: ${element.author}`
+    let p2 = document.createElement("p");
+    p2.textContent = `Pages: ${element.pages}`
+    let p3 = document.createElement("p");
+    p3.textContent = (element.isRead) ? "Already read" : "not read yet";
+
+    cardBottom.appendChild(p1);
+    cardBottom.appendChild(p2);
+    cardBottom.appendChild(p3);
+
+    let readBtn = createButton("readBtn", "btn", "Read", "data-index", index)
+    readBtn.addEventListener("click", readBook)
+    cardBottom.appendChild(readBtn)
+
+    let delBtn = createButton("delBtn", "btn", "Delete", "data-index", index)
+    delBtn.addEventListener("click", removeBook)
+    cardBottom.appendChild(delBtn)
+
+    card.appendChild(cardTop)
+    card.appendChild(cardBottom)
+
+    container.appendChild(card)
+}
+
+function createButton(class1, class2, text, data1, data2) {
+    let btn = document.createElement("div");
+    btn.classList.add(class1)
+    btn.classList.add(class2)
+    btn.textContent = text
+    btn.setAttribute(data1, data2)
+    return btn
+}
+
+
+function deleteCards() {
+    container.innerHTML = ""
+}
+
+function readBook() {
+    myLibrary[this.getAttribute("data-index")].isRead = !myLibrary[this.getAttribute("data-index")].isRead;
+    updateView()
+}
+
+function removeBook() {
+    myLibrary.splice(this.getAttribute("data-index"), 1)
+    updateView()
+}
+
+function updateView() {
+    deleteCards()
+    displayBooks()
+}
+
+displayBooks()
+console.log(myLibrary)
