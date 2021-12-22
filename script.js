@@ -1,93 +1,135 @@
-const container = document.querySelector(".container")
-const addButton = document.querySelector(".addBtn")
-let myLibrary = [];
+let myLibrary = []
+const content = document.querySelector(".content")
+const addBtn = document.getElementById("addBook")
+const addBtn2= document.getElementById("addBook2")
+const modal = document.querySelector(".modal")
+const closeBtn = document.getElementById("closeBtn")
+const form = document.getElementById("form")
+let id_counter = 0;
 
-function Book(author, title, pages, isRead) {
-    this.author = author;
-    this.title = title;
-    this.pages = pages;
-    this.isRead = isRead;
+addBtn.addEventListener("click", showModal)
+closeBtn.addEventListener("click", closeModal)
+window.addEventListener("click", closeModalTwo)
+addBtn2.addEventListener("click", addBook)
+
+function Book(title, author, pages, isRead) {
+    this.title = title
+    this.author = author
+    this.pages = pages
+    this.isRead = isRead
+    this.id = id_counter;
+    id_counter++;
 }
+
+function showModal() {
+    modal.style.display = "block";
+}
+
+function closeModal() {
+    form.reset()
+    modal.style.display = "none"
+}
+
+function closeModalTwo(event) {
+    if(event.target == modal) {
+        closeModal()
+        form.reset()
+    }
+}
+
+function addBook(event) {
+    const book_title = document.getElementById("title").value
+    const book_author = document.getElementById("author").value
+    const book_pages = document.getElementById("pages").value
+    const book_isRead = document.getElementById("isRead").checked
+
+    if(book_title === "" || book_author === "" || book_pages === "") {
+        return;
+    }
+
+    let book = new Book(book_title, book_author, book_pages, book_isRead);
+
+    addBookToLibrary(book);
+    addBookToPage(book);
+    closeModal()
+}
+
 
 function addBookToLibrary(book) {
-    myLibrary.push(book);
+    myLibrary.push(book)
 }
 
-addBookToLibrary(new Book("Fabian Baiersdörfer", "Mein Leben Teil 1", 123, true))
-addBookToLibrary(new Book("Dieter Busch", "Rentweinsdorf", 1233, true))
-addBookToLibrary(new Book("M. Sennefelder", "Ich orgel mir einen rein", 1234, false))
-
-function displayBooks(library) {
-    myLibrary.forEach((element, index) => {
-        createCard(element, index)
-    });
+function removeBookFromLibrary(id) {
+    myLibrary.forEach((book) => {
+        if(book.id === id) {
+            myLibrary.splice(myLibrary.indexOf(book), 1)
+        }
+        console.log(myLibrary)
+    })
 }
 
-function createCard(element, index) {
-    let card = document.createElement("div");
-    card.setAttribute("data-index", index)
-    card.classList.add("element")
-
-    let cardTop = document.createElement("div");
-    cardTop.classList.add("cardTop");
-    cardTop.innerHTML = `<b>${element.title}</b>`
-
-    let cardBottom = document.createElement("dvi");
-    cardBottom.classList.add("cardBottom");
-
-    let p1 = document.createElement("p");
-    p1.textContent = `Author: ${element.author}`
-    let p2 = document.createElement("p");
-    p2.textContent = `Pages: ${element.pages}`
-    let p3 = document.createElement("p");
-    p3.textContent = (element.isRead) ? "Already read" : "not read yet";
-
-    cardBottom.appendChild(p1);
-    cardBottom.appendChild(p2);
-    cardBottom.appendChild(p3);
-
-    let readBtn = createButton("readBtn", "btn", "Read", "data-index", index)
-    readBtn.addEventListener("click", readBook)
-    cardBottom.appendChild(readBtn)
-
-    let delBtn = createButton("delBtn", "btn", "Delete", "data-index", index)
-    delBtn.addEventListener("click", removeBook)
-    cardBottom.appendChild(delBtn)
-
-    card.appendChild(cardTop)
-    card.appendChild(cardBottom)
-
-    container.appendChild(card)
+function changeReadStatus(id) {
+    myLibrary.forEach((book) => {
+        if(book.id === id) {
+            book.isRead = !book.isRead
+        }
+    })
 }
 
-function createButton(class1, class2, text, data1, data2) {
-    let btn = document.createElement("div");
-    btn.classList.add(class1)
-    btn.classList.add(class2)
-    btn.textContent = text
-    btn.setAttribute(data1, data2)
-    return btn
+function getReadStatus(id) {
+    let status = undefined
+    myLibrary.forEach((book) => {
+        if(book.id === id) {
+            status = book.isRead;
+        }
+    })
+    return status
 }
 
 
-function deleteCards() {
-    container.innerHTML = ""
-}
+function addBookToPage(book) {
+    let readStatus = book.isRead ? "Already read" : "not read";
 
-function readBook() {
-    myLibrary[this.getAttribute("data-index")].isRead = !myLibrary[this.getAttribute("data-index")].isRead;
-    updateView()
-}
+    let cardDiv = document.createElement("div");
+    let nameDiv = document.createElement("div");
+    let pageDiv = document.createElement("div");
+    let readDiv = document.createElement("div");
+    let deleBtn = document.createElement("div");
+    let readBtn = document.createElement("div");
 
-function removeBook() {
-    myLibrary.splice(this.getAttribute("data-index"), 1)
-    updateView()
-}
+    deleBtn.dataset.id = book.id;
+    readBtn.dataset.id = book.id;
 
-function updateView() {
-    deleteCards()
-    displayBooks()
-}
+    cardDiv.classList.add("card");
+    nameDiv.classList.add("flex-1", "card-content");
+    pageDiv.classList.add("flex-2", "card-content");
+    readDiv.classList.add("flex-2", "card-content");
+    readBtn.classList.add("button", "green-button");
+    deleBtn.classList.add("button", "red-button");
 
-displayBooks()
-console.log(myLibrary)
+    nameDiv.textContent = `${book.author}: ${book.title}`
+    pageDiv.textContent = `${book.pages} Pages`
+    readDiv.textContent = readStatus
+    readBtn.textContent = "change status"
+    deleBtn.textContent = "delete"
+
+    readBtn.addEventListener("click", (e) => {
+        let tmp_id = Number(e.target.dataset.id);
+        changeReadStatus(tmp_id)
+        e.target.parentElement.childNodes[2].textContent = getReadStatus(tmp_id) ? "Already read" : "not read"
+    })
+
+    deleBtn.addEventListener("click", (e) => {
+        removeBookFromLibrary(Number(e.target.dataset.id))
+        e.target.parentElement.remove()
+    })
+
+    cardDiv.appendChild(nameDiv);
+    cardDiv.appendChild(pageDiv);
+    cardDiv.appendChild(readDiv);
+    cardDiv.appendChild(readBtn);
+    cardDiv.appendChild(readBtn);
+    cardDiv.appendChild(deleBtn);
+
+    content.appendChild(cardDiv)
+}
